@@ -1,5 +1,7 @@
-import { useState } from "react";
+// React import not required directly in this file (JSX runtime handles it)
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { showSuccess } from "@/lib/toast";
 import {
   Card,
   CardContent,
@@ -9,40 +11,33 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-// If you have a textarea component from shadcn, import it. Otherwise, use a regular textarea.
+import {
+  Form,
+  FormItem,
+  FormField,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 
-function validateEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+type ContactFormValues = {
+  name: string;
+  email: string;
+  message: string;
+};
 
 export function ContactForm() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [errors, setErrors] = useState<{
-    name?: string;
-    email?: string;
-    message?: string;
-  }>({});
+  const form = useForm<ContactFormValues>({
+    defaultValues: {
+      name: "",
+      email: "",
+      message: "",
+    },
+  });
 
-  function validate() {
-    const newErrors: { name?: string; email?: string; message?: string } = {};
-    if (name.trim().length < 2) newErrors.name = "Name is required";
-    if (!validateEmail(email)) newErrors.email = "Invalid email";
-    if (message.trim().length < 10) newErrors.message = "Message is too short";
-    return newErrors;
-  }
-
-  function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const newErrors = validate();
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length === 0) {
-      alert(JSON.stringify({ name, email, message }, null, 2));
-      setName("");
-      setEmail("");
-      setMessage("");
-    }
+  function onSubmit(_values: ContactFormValues) {
+    showSuccess("Message sent — thanks!");
+    form.reset();
   }
 
   return (
@@ -54,46 +49,59 @@ export function ContactForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your Name"
-              aria-invalid={!!errors.name}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Your Name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.name && (
-              <div className="text-red-500 text-xs mt-1">{errors.name}</div>
-            )}
-          </div>
-          <div>
-            <Input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Your Email"
-              aria-invalid={!!errors.email}
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="your@email.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.email && (
-              <div className="text-red-500 text-xs mt-1">{errors.email}</div>
-            )}
-          </div>
-          <div>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Your Message"
-              aria-invalid={!!errors.message}
-              rows={5}
-              className="w-full border rounded-md p-2"
+
+            <FormField
+              control={form.control}
+              name="message"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Message</FormLabel>
+                  <FormControl>
+                    <textarea
+                      {...field}
+                      placeholder="Your Message"
+                      rows={5}
+                      className="w-full border rounded-md p-2"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.message && (
-              <div className="text-red-500 text-xs mt-1">{errors.message}</div>
-            )}
-          </div>
-        </form>
+          </form>
+        </Form>
       </CardContent>
       <CardFooter>
-        <Button type="submit" onClick={onSubmit}>
+        <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
           Send
         </Button>
       </CardFooter>

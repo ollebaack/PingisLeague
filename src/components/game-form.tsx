@@ -1,7 +1,22 @@
 import { useEffect, useState, type ChangeEvent } from "react";
+import { showError } from "@/lib/toast";
 import { usePlayers } from "../app/providers/players-provider";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+  CommandEmpty,
+} from "@/components/ui/command";
 
 export function GameForm() {
   const { players, addGame } = usePlayers();
@@ -17,7 +32,7 @@ export function GameForm() {
 
   const submit = () => {
     if (!playerA || !playerB || playerA === playerB)
-      return alert("Select two different players");
+      return showError("Please select two different players");
     addGame({
       playerAId: playerA,
       playerBId: playerB,
@@ -30,64 +45,76 @@ export function GameForm() {
 
   return (
     <Card>
-      <h3>Record Game</h3>
-      <div style={{ display: "grid", gap: 8 }}>
-        <div>
-          <label>Player A</label>
-          <select
-            value={playerA}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-              setPlayerA(e.target.value)
-            }
-          >
-            <option value="">— select —</option>
-            {players.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Player B</label>
-          <select
-            value={playerB}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-              setPlayerB(e.target.value)
-            }
-          >
-            <option value="">— select —</option>
-            {players.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <div>
-            <label>Score A</label>
-            <input
-              type="number"
-              value={scoreA}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setScoreA(Number(e.target.value))
-              }
-            />
+      <CardHeader>
+        <CardTitle>Record Game</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div>
+              <label className="text-sm text-muted-foreground">Player A</label>
+              <Command value={playerA} onValueChange={(v) => setPlayerA(v)}>
+                <CommandInput placeholder="Select player A..." />
+                <CommandList>
+                  {players.length === 0 && (
+                    <CommandEmpty>No players</CommandEmpty>
+                  )}
+                  {players.map((p) => (
+                    <CommandItem key={p.id} value={p.id}>
+                      {p.name}
+                    </CommandItem>
+                  ))}
+                </CommandList>
+              </Command>
+            </div>
+
+            <div>
+              <label className="text-sm text-muted-foreground">Player B</label>
+              <Command value={playerB} onValueChange={(v) => setPlayerB(v)}>
+                <CommandInput placeholder="Select player B..." />
+                <CommandList>
+                  {players.length === 0 && (
+                    <CommandEmpty>No players</CommandEmpty>
+                  )}
+                  {players.map((p) => (
+                    <CommandItem key={p.id} value={p.id}>
+                      {p.name}
+                    </CommandItem>
+                  ))}
+                </CommandList>
+              </Command>
+            </div>
           </div>
-          <div>
-            <label>Score B</label>
-            <input
-              type="number"
-              value={scoreB}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setScoreB(Number(e.target.value))
-              }
-            />
+
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="text-sm text-muted-foreground">Score A</label>
+              <Input
+                type="number"
+                value={scoreA}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setScoreA(Number(e.target.value))
+                }
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-sm text-muted-foreground">Score B</label>
+              <Input
+                type="number"
+                value={scoreB}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setScoreB(Number(e.target.value))
+                }
+              />
+            </div>
           </div>
         </div>
-        <Button onClick={submit}>Save Game</Button>
-      </div>
+      </CardContent>
+      <CardFooter>
+        <div className="w-full flex justify-end">
+          <Button onClick={submit}>Save Game</Button>
+        </div>
+      </CardFooter>
     </Card>
   );
 }
