@@ -38,12 +38,12 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const { open } = useSidebar(); // Get collapsed state
+  const { open, setOpen, isMobile, setOpenMobile } = useSidebar(); // Get collapsed state
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar variant="floating" collapsible="offcanvas" defaultValue={false}>
       <SidebarHeader>
-        <SidebarTrigger className="pl-1" />
+        <SidebarTrigger className="ml-auto" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -51,7 +51,17 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem
+                  key={item.title}
+                  onClick={() => {
+                    // Close sidebar on item click
+                    if (isMobile) {
+                      setOpenMobile(false);
+                    } else {
+                      setOpen(false);
+                    }
+                  }}
+                >
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}

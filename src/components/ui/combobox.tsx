@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +30,7 @@ export function Combobox({
 }: {
   items: Item[];
   value?: string | null;
-  onValueChange: (id: string | undefined) => void;
+  onValueChange: (id?: string) => void;
   placeholder?: string;
   exclude?: (id: string) => boolean;
   className?: string;
@@ -54,9 +53,9 @@ export function Combobox({
               .map((it) => (
                 <CommandItem
                   key={it.id}
-                  value={it.id}
-                  onSelect={(val) => {
-                    onValueChange?.(val || undefined);
+                  value={it.label} // used for filtering
+                  onSelect={() => {
+                    onValueChange?.(it.id); // send ID back to parent
                     setOpen(false);
                   }}
                 >
@@ -73,6 +72,7 @@ export function Combobox({
     <Button
       variant="outline"
       className={"justify-start " + (className || "") + " w-full"}
+      disabled={items.length === 0}
     >
       {selected ? selected.label : placeholder}
     </Button>

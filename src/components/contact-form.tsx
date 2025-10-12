@@ -41,7 +41,7 @@ export function ContactForm() {
   }
 
   return (
-    <Card className="max-w-md mx-auto">
+    <Card className="max-w-md">
       <CardHeader>
         <CardTitle>Contact Us</CardTitle>
         <CardDescription>

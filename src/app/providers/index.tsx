@@ -6,7 +6,7 @@ import { ThemeProvider } from "./theme-provider";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <ThemeProvider>
         <PageProvider>
           <PlayersProvider>{children}</PlayersProvider>

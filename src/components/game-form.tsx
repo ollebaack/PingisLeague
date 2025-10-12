@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent } from "react";
-import { showError } from "@/lib/toast";
+import { showError, showSuccess } from "@/lib/toast";
 import { usePlayers } from "../app/providers/players-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,8 +17,8 @@ export function GameForm() {
   const { players, addGame } = usePlayers();
   const [playerA, setPlayerA] = useState<string | undefined>(players[0]?.id);
   const [playerB, setPlayerB] = useState<string | undefined>(players[1]?.id);
-  const [scoreA, setScoreA] = useState<number>(11);
-  const [scoreB, setScoreB] = useState<number>(9);
+  const [scoreA, setScoreA] = useState<number>(0);
+  const [scoreB, setScoreB] = useState<number>(0);
 
   useEffect(() => {
     if (!playerA && players[0]) setPlayerA(players[0].id);
@@ -26,16 +26,36 @@ export function GameForm() {
   }, [players]);
 
   const submit = () => {
-    if (!playerA || !playerB || playerA === playerB)
-      return showError("Please select two different players");
+    // --- PLAYER VALIDATION ---
+    if (!playerA || !playerB) return showError("Please select both players");
+    if (playerA === playerB) return showError("Players must be different");
+
+    // --- SCORE VALIDATION ---
+    if (isNaN(scoreA) || isNaN(scoreB))
+      return showError("Scores must be numbers");
+
+    if (scoreA < 0 || scoreB < 0) return showError("Scores cannot be negative");
+
+    if (scoreA === 0 && scoreB === 0)
+      return showError("At least one player must have a non-zero score");
+
+    if (scoreA === scoreB) return showError("Game cannot end in a draw");
+
+    if (scoreA > 1000 || scoreB > 1000)
+      return showError("Scores are unrealistically high — please check again");
+
+    // --- GAME CREATION ---
     addGame({
       playerAId: playerA,
       playerBId: playerB,
       scoreA: Number(scoreA),
       scoreB: Number(scoreB),
     });
-    setScoreA(11);
-    setScoreB(9);
+
+    // --- RESET STATE ---
+    setScoreA(0);
+    setScoreB(0);
+    showSuccess("Game recorded");
   };
 
   return (

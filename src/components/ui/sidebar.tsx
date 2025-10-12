@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -162,7 +163,7 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset";
   collapsible?: "offcanvas" | "icon" | "none";
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const { isMobile, state, openMobile, setOpenMobile, setOpen } = useSidebar();
 
   if (collapsible === "none") {
     return (
@@ -204,8 +205,32 @@ function Sidebar({
     );
   }
 
+  // ✅ Desktop: Add outside-click detection
+  const sidebarRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        // Only collapse if currently expanded
+        if (state === "expanded") {
+          setOpen(false);
+        }
+      }
+    }
+
+    if (state === "expanded") {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [state, setOpen]);
+
   return (
     <div
+      ref={sidebarRef}
       className="group peer text-sidebar-foreground hidden md:block"
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
@@ -257,7 +282,8 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, open, openMobile, isMobile } = useSidebar();
+  const isOpen = isMobile ? openMobile : open;
 
   return (
     <Button
@@ -272,7 +298,7 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <Menu />
+      {isOpen ? <X /> : <Menu />}
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

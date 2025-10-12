@@ -25,7 +25,7 @@ export function PlayersList() {
   };
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
         <CardTitle>Players</CardTitle>
       </CardHeader>
