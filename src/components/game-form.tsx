@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import z from "zod/v3";
 import { usePlayers } from "../app/providers/players-provider";
 import { showSuccess } from "@/lib/toast";
 
@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/form";
 import { Combobox } from "@/components/ui/combobox";
 
-// Zod v4 compatible schema (removed invalid_type_error)
 const schema = z
   .object({
     playerAId: z.string().nonempty("Select player A"),
