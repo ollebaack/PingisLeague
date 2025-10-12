@@ -10,13 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandItem,
-  CommandEmpty,
-} from "@/components/ui/command";
+import { Combobox } from "@/components/ui/combobox";
+// Command primitives are used by the Combobox component
 
 export function GameForm() {
   const { players, addGame } = usePlayers();
@@ -53,36 +48,25 @@ export function GameForm() {
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div>
               <label className="text-sm text-muted-foreground">Player A</label>
-              <Command value={playerA} onValueChange={(v) => setPlayerA(v)}>
-                <CommandInput placeholder="Select player A..." />
-                <CommandList>
-                  {players.length === 0 && (
-                    <CommandEmpty>No players</CommandEmpty>
-                  )}
-                  {players.map((p) => (
-                    <CommandItem key={p.id} value={p.id}>
-                      {p.name}
-                    </CommandItem>
-                  ))}
-                </CommandList>
-              </Command>
+              <Combobox
+                items={players.map((p) => ({ id: p.id, label: p.name }))}
+                value={playerA}
+                onValueChange={(v) => setPlayerA(v)}
+                placeholder="Select player A..."
+                className="w-full"
+              />
             </div>
 
             <div>
               <label className="text-sm text-muted-foreground">Player B</label>
-              <Command value={playerB} onValueChange={(v) => setPlayerB(v)}>
-                <CommandInput placeholder="Select player B..." />
-                <CommandList>
-                  {players.length === 0 && (
-                    <CommandEmpty>No players</CommandEmpty>
-                  )}
-                  {players.map((p) => (
-                    <CommandItem key={p.id} value={p.id}>
-                      {p.name}
-                    </CommandItem>
-                  ))}
-                </CommandList>
-              </Command>
+              <Combobox
+                items={players.map((p) => ({ id: p.id, label: p.name }))}
+                value={playerB}
+                onValueChange={(v) => setPlayerB(v)}
+                placeholder="Select player B..."
+                exclude={(id) => id === playerA}
+                className="w-full"
+              />
             </div>
           </div>
 
