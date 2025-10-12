@@ -1,4 +1,12 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import {
+  Calendar,
+  Home,
+  Inbox,
+  Settings,
+  User,
+  Play,
+  List,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -15,34 +23,17 @@ import {
 } from "@/components/ui/sidebar";
 
 import { useSidebar } from "@/components/ui/sidebar"; // Assuming sidebar context/hook
+import { NavLink } from "react-router-dom";
 
-// Menu items.
+// Menu items for routes.
 const items = [
-  {
-    title: "Home",
-    url: "#",
-    icon: Home,
-  },
-  {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
-  },
-  {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
+  { title: "Home", url: "/", icon: Home },
+  { title: "Players", url: "/players", icon: User },
+  { title: "Games", url: "/games", icon: Play },
+  { title: "Leaderboard", url: "/leaderboard", icon: List },
+  { title: "Contact", url: "/contact", icon: Inbox },
+  { title: "About", url: "/about", icon: Calendar },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -61,10 +52,15 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <NavLink
+                      to={item.url}
+                      className={({ isActive }) =>
+                        isActive ? "font-semibold text-blue-600" : ""
+                      }
+                    >
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

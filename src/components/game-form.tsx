@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent } from "react";
-import { usePlayers } from "../state";
+import { usePlayers } from "../app/providers/players-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 

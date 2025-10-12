@@ -1,4 +1,4 @@
-import { usePlayers } from "../state";
+import { usePlayers } from "../app/providers/players-provider";
 import { Card } from "@/components/ui/card";
 
 export function Leaderboard() {
