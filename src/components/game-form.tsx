@@ -1,6 +1,10 @@
-import { useEffect, useState, type ChangeEvent } from "react";
-import { showError, showSuccess } from "@/lib/toast";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { usePlayers } from "../app/providers/players-provider";
+import { showSuccess } from "@/lib/toast";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,115 +14,191 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Combobox } from "@/components/ui/combobox";
-// Command primitives are used by the Combobox component
 
-export function GameForm() {
+// Zod v4 compatible schema (removed invalid_type_error)
+const schema = z
+  .object({
+    playerAId: z.string().nonempty("Select player A"),
+    playerBId: z.string().nonempty("Select player B"),
+    scoreA: z
+      .number()
+      .int()
+      .min(0, "Scores cannot be negative")
+      .max(1000, "Scores are unrealistically high — please check again"),
+    scoreB: z
+      .number()
+      .int()
+      .min(0, "Scores cannot be negative")
+      .max(1000, "Scores are unrealistically high — please check again"),
+  })
+  .refine((d) => d.playerAId !== d.playerBId, {
+    message: "Players must be different",
+    path: ["playerBId"],
+  })
+  .refine((d) => d.scoreA !== d.scoreB, {
+    message: "Game cannot end in a draw",
+    path: ["scoreB"],
+  })
+  .refine((d) => d.scoreA > 0 || d.scoreB > 0, {
+    message: "At least one player must have a non-zero score",
+    path: ["scoreA"],
+  });
+
+type FormSchema = z.infer<typeof schema>;
+
+export default function GameForm() {
   const { players, addGame } = usePlayers();
-  const [playerA, setPlayerA] = useState<string | undefined>(players[0]?.id);
-  const [playerB, setPlayerB] = useState<string | undefined>(players[1]?.id);
-  const [scoreA, setScoreA] = useState<number>(0);
-  const [scoreB, setScoreB] = useState<number>(0);
+
+  const form = useForm<FormSchema>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      playerAId: players[0]?.id ?? "",
+      playerBId: players[1]?.id ?? "",
+      scoreA: 0,
+      scoreB: 0,
+    },
+  });
+
+  const { handleSubmit, reset, setValue, watch } = form;
 
   useEffect(() => {
-    if (!playerA && players[0]) setPlayerA(players[0].id);
-    if (!playerB && players[1]) setPlayerB(players[1].id);
+    if (!watch("playerAId") && players[0]) setValue("playerAId", players[0].id);
+    if (!watch("playerBId") && players[1]) setValue("playerBId", players[1].id);
   }, [players]);
 
-  const submit = () => {
-    // --- PLAYER VALIDATION ---
-    if (!playerA || !playerB) return showError("Please select both players");
-    if (playerA === playerB) return showError("Players must be different");
-
-    // --- SCORE VALIDATION ---
-    if (isNaN(scoreA) || isNaN(scoreB))
-      return showError("Scores must be numbers");
-
-    if (scoreA < 0 || scoreB < 0) return showError("Scores cannot be negative");
-
-    if (scoreA === 0 && scoreB === 0)
-      return showError("At least one player must have a non-zero score");
-
-    if (scoreA === scoreB) return showError("Game cannot end in a draw");
-
-    if (scoreA > 1000 || scoreB > 1000)
-      return showError("Scores are unrealistically high — please check again");
-
-    // --- GAME CREATION ---
+  const onSubmit = (values: FormSchema) => {
     addGame({
-      playerAId: playerA,
-      playerBId: playerB,
-      scoreA: Number(scoreA),
-      scoreB: Number(scoreB),
+      playerAId: values.playerAId,
+      playerBId: values.playerBId,
+      scoreA: Number(values.scoreA),
+      scoreB: Number(values.scoreB),
     });
 
-    // --- RESET STATE ---
-    setScoreA(0);
-    setScoreB(0);
+    reset({
+      playerAId: players[0]?.id ?? "",
+      playerBId: players[1]?.id ?? "",
+      scoreA: 0,
+      scoreB: 0,
+    });
+
     showSuccess("Game recorded");
   };
+
+  const items = players.map((p) => ({ id: p.id, label: p.name }));
+  const selectedA = watch("playerAId");
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Record Game</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid gap-4">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <div>
-              <label className="text-sm text-muted-foreground">Player A</label>
-              <Combobox
-                items={players.map((p) => ({ id: p.id, label: p.name }))}
-                value={playerA}
-                onValueChange={(v) => setPlayerA(v)}
-                placeholder="Select player A..."
-                className="w-full"
-              />
-            </div>
 
-            <div>
-              <label className="text-sm text-muted-foreground">Player B</label>
-              <Combobox
-                items={players.map((p) => ({ id: p.id, label: p.name }))}
-                value={playerB}
-                onValueChange={(v) => setPlayerB(v)}
-                placeholder="Select player B..."
-                exclude={(id) => id === playerA}
-                className="w-full"
-              />
-            </div>
-          </div>
+      <Form {...form}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <CardContent>
+            <div className="grid gap-4">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="playerAId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Player A</FormLabel>
+                      <FormControl>
+                        <Combobox
+                          items={items}
+                          value={field.value}
+                          onValueChange={(v) => field.onChange(v)}
+                          placeholder="Select player A..."
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="text-sm text-muted-foreground">Score A</label>
-              <Input
-                type="number"
-                value={scoreA}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setScoreA(Number(e.target.value))
-                }
-              />
+                <FormField
+                  control={form.control}
+                  name="playerBId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Player B</FormLabel>
+                      <FormControl>
+                        <Combobox
+                          items={items}
+                          value={field.value}
+                          onValueChange={(v) => field.onChange(v)}
+                          placeholder="Select player B..."
+                          exclude={(id: string) => id === selectedA}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <FormField
+                  control={form.control}
+                  name="scoreA"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>Score A</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          value={String(field.value ?? 0)}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="scoreB"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>Score B</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          value={String(field.value ?? 0)}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-            <div className="flex-1">
-              <label className="text-sm text-muted-foreground">Score B</label>
-              <Input
-                type="number"
-                value={scoreB}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setScoreB(Number(e.target.value))
-                }
-              />
+          </CardContent>
+          <CardFooter>
+            <div className="pt-4 ml-auto">
+              <Button type="submit">Save Game</Button>
             </div>
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <div className="w-full flex justify-end">
-          <Button onClick={submit}>Save Game</Button>
-        </div>
-      </CardFooter>
+          </CardFooter>
+        </form>
+      </Form>
     </Card>
   );
 }

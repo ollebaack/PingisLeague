@@ -1,4 +1,3 @@
-// React import not required directly in this file (JSX runtime handles it)
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { showSuccess } from "@/lib/toast";

@@ -1,4 +1,3 @@
-// app/providers/index.tsx
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { PageProvider } from "./page-provider";
 import { PlayersProvider } from "./players-provider";

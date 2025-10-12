@@ -11,12 +11,20 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerOverlay,
+  DrawerPortal,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useState } from "react";
 
 type Item = { id: string; label: string };
 
@@ -91,12 +99,16 @@ export function Combobox({
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTitle></DrawerTitle>
       <DrawerTrigger asChild>{triggerContent}</DrawerTrigger>
-      <DrawerContent>
-        <div className="mt-4 border-t">
-          <ItemList />
-        </div>
-      </DrawerContent>
+      <DrawerOverlay />
+      <DrawerPortal>
+        <DrawerContent>
+          <div className="mt-4 border-t">
+            <ItemList />
+          </div>
+        </DrawerContent>
+      </DrawerPortal>
     </Drawer>
   );
 }

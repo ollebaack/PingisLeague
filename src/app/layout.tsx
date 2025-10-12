@@ -1,4 +1,3 @@
-// app/layout.tsx
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppProviders } from "./providers";
 import { Toaster } from "@/components/ui/sonner";

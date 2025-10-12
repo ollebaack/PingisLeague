@@ -41,7 +41,7 @@ export function AppSidebar() {
   const { open, setOpen, isMobile, setOpenMobile } = useSidebar(); // Get collapsed state
 
   return (
-    <Sidebar variant="floating" collapsible="offcanvas" defaultValue={false}>
+    <Sidebar variant="floating" collapsible="offcanvas">
       <SidebarHeader>
         <SidebarTrigger className="ml-auto" />
       </SidebarHeader>
