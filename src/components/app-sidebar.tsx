@@ -22,6 +22,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useSidebar } from "@/components/ui/sidebar"; // Assuming sidebar context/hook
 import { NavLink } from "react-router-dom";
 
@@ -69,7 +70,12 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        {open ? <div className="p-4 text-sm">© 2024 Your Company</div> : null}
+        {open ? (
+          <div className="p-4 text-sm flex flex-col gap-2">
+            <div>© 2024 Your Company</div>
+            <ThemeToggle />
+          </div>
+        ) : null}
       </SidebarFooter>
     </Sidebar>
   );
