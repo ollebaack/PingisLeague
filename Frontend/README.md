@@ -73,3 +73,56 @@ export default defineConfig([
   },
 ])
 ```
+
+## Chat API Integration
+
+The backend Express proxy (folder `Backend/`) exposes:
+
+- `POST http://localhost:4000/api/chat` body `{ message: string }` -> `{ answer: string }`
+
+Helper function is in `src/lib/chat.ts`:
+
+```ts
+import { sendChatMessage } from './lib/chat';
+
+async function demo() {
+  const answer = await sendChatMessage('Hello');
+  console.log(answer);
+}
+```
+
+### Running Both Apps
+
+Open two terminals:
+
+1. Backend
+
+```powershell
+cd ../Backend
+cp .env.example .env
+pnpm install
+pnpm dev
+```
+
+1. Frontend
+
+```powershell
+cd Frontend
+pnpm install
+pnpm dev
+```
+
+Then call `sendChatMessage` (e.g. from a component or the browser console).
+
+### Sample curl
+
+```powershell
+curl -X POST http://localhost:4000/api/chat -H "Content-Type: application/json" -d '{"message":"Ping?"}'
+```
+
+### Notes / Next Steps
+
+- Add auth (API key header) before exposing public.
+- Consider logging / masking sensitive info.
+- Add timeout & retry logic for n8n unavailability.
+- SWR integration added: see `src/hooks/useChat.ts` using `useSWRMutation` for sending messages.

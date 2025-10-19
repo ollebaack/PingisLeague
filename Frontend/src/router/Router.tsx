@@ -6,6 +6,7 @@ import GamesPage from "@/pages/Games";
 import LeaderboardPage from "@/pages/Leaderboard";
 import ContactPage from "@/pages/Contact";
 import SettingsPage from "@/pages/Settings";
+import ChatPage from "@/pages/Chat";
 
 export default function Router() {
   return (
@@ -17,6 +18,7 @@ export default function Router() {
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/about" element={<About />} />
+      <Route path="/chat" element={<ChatPage />} />
     </Routes>
   );
 }

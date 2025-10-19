@@ -35,6 +35,7 @@ const items = [
   { title: "Contact", url: "/contact", icon: Inbox },
   { title: "About", url: "/about", icon: Calendar },
   { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Chat", url: "/chat", icon: Inbox },
 ];
 
 export function AppSidebar() {
