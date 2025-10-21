@@ -12,7 +12,7 @@
     {
       "label": "Backend",
       "type": "shell",
-      "command": "npm run dev",
+      "command": "pnpm run setup-and-start",
       "group": "none",
       "options": { "cwd": "${workspaceFolder}/Backend" },
       "presentation": { "reveal": "always", "panel": "dedicated" }
@@ -20,7 +20,7 @@
     {
       "label": "Frontend",
       "type": "shell",
-      "command": "npm run dev",
+      "command": "pnpm run setup-and-start",
       "group": "none",
       "options": { "cwd": "${workspaceFolder}/Frontend" },
       "presentation": { "reveal": "always", "panel": "dedicated" }

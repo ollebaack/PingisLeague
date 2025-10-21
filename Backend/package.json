@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch ./src/index.js",
-    "start": "NODE_ENV=production node ./src/index.js"
+    "start": "NODE_ENV=production node ./src/index.js",
+    "setup-and-start": "pnpm install && pnpm run dev"
   },
   "dependencies": {
     "cors": "^2.8.5",
