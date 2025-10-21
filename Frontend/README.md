@@ -97,6 +97,7 @@ Open two terminals:
 
 1. Backend
 
+ 
 ```powershell
 cd ../Backend
 cp .env.example .env
@@ -106,6 +107,21 @@ pnpm dev
 
 1. Frontend
 
+## Data Fetching (Players & Games)
+
+Local in-memory React state for players/games has been replaced with SWR.
+
+Provider: `src/app/providers/players-provider.tsx` supplies:
+
+- `players` from `GET /api/players`
+- `games` from `GET /api/games`
+- `getLeaderboard()` returning cached leaderboard from `GET /api/leaderboard`
+- Mutations (`addPlayer`, `removePlayer`, `addGame`) perform API calls then mutate SWR caches optimistically and trigger leaderboard revalidation.
+
+`swr` refresh interval for leaderboard matches backend TTL (30s).
+
+If you change backend base URL, update `API_BASE` constant in provider (or move to env injection).
+ 
 ```powershell
 cd Frontend
 pnpm install

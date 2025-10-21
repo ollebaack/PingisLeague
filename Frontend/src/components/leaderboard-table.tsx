@@ -1,4 +1,4 @@
-import { usePlayers } from "../app/providers/players-provider";
+import { usePlayers } from "../app/providers/players-context";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,

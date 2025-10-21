@@ -1,7 +1,8 @@
 // Mock players data. Replace with DB integration later.
+// Keeping only id + name to align with current frontend Player type.
 export const players = [
-  { id: 1, name: "Alice", rating: 1520, country: "SE" },
-  { id: 2, name: "Bob", rating: 1475, country: "SE" },
-  { id: 3, name: "Charlie", rating: 1602, country: "NO" },
-  { id: 4, name: "Diana", rating: 1410, country: "DK" },
+  { id: "p_1", name: "Alice" },
+  { id: "p_2", name: "Bob" },
+  { id: "p_3", name: "Charlie" },
+  { id: "p_4", name: "Diana" },
 ];

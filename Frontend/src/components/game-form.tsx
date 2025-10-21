@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod/v3";
-import { usePlayers } from "../app/providers/players-provider";
+import { usePlayers } from "../app/providers/players-context";
 import { showSuccess } from "@/lib/toast";
 
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,7 @@ export default function GameForm() {
   useEffect(() => {
     if (!watch("playerAId") && players[0]) setValue("playerAId", players[0].id);
     if (!watch("playerBId") && players[1]) setValue("playerBId", players[1].id);
-  }, [players]);
+  }, [players, setValue, watch]);
 
   const onSubmit = (values: FormSchema) => {
     addGame({

@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, useRef } from "react";
-import { usePlayers } from "../app/providers/players-provider";
+import { usePlayers } from "../app/providers/players-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

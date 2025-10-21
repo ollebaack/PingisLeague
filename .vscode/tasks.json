@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "N8n",
+      "type": "shell",
+      "command": "npx n8n",
+      "group": "none",
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Backend",
+      "type": "shell",
+      "command": "npm run dev",
+      "group": "none",
+      "options": { "cwd": "${workspaceFolder}/Backend" },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Frontend",
+      "type": "shell",
+      "command": "npm run dev",
+      "group": "none",
+      "options": { "cwd": "${workspaceFolder}/Frontend" },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+
+    // 🟢 Compound task that starts everything in parallel on folder open
+    {
+      "label": "Start All",
+      "dependsOn": ["N8n", "Backend", "Frontend"],
+      "dependsOrder": "parallel",
+      "runOptions": { "runOn": "folderOpen" },
+      "problemMatcher": []
+    }
+  ]
+}

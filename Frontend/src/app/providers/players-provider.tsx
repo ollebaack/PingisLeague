@@ -1,154 +1,116 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback } from "react";
+import useSWR, { mutate } from "swr";
+import { PlayersContext } from "./players-context";
+import type { State, Player, Game, LeaderboardEntry } from "./players-context";
 
-export type Player = { id: string; name: string };
-export type Game = {
-  id: string;
-  playerAId: string;
-  playerBId: string;
-  scoreA: number;
-  scoreB: number;
-  date: string;
+const API_BASE = "http://localhost:4000/api"; // TODO: inject via env
+
+type PlayersResponse = { players: Player[] };
+type GamesResponse = { games: Game[] };
+type LeaderboardResponse = { leaderboard: LeaderboardEntry[] };
+
+const fetcher = async <T,>(url: string): Promise<T> => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
 };
-
-type LeaderboardEntry = {
-  player: Player;
-  wins: number;
-  losses: number;
-  matches: number;
-  pointsFor: number;
-  pointsAgainst: number;
-  pointDiff: number;
-};
-
-type State = {
-  players: Player[];
-  games: Game[];
-  addPlayer: (name: string) => Player;
-  removePlayer: (id: string) => void;
-  addGame: (game: Omit<Game, "id" | "date">) => Game;
-  getLeaderboard: () => LeaderboardEntry[];
-};
-
-const STORAGE_PLAYERS = "tt_players_v1";
-const STORAGE_GAMES = "tt_games_v1";
-
-const PlayersContext = createContext<State | undefined>(undefined);
-
-function uid(prefix = "") {
-  return (
-    prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
-  );
-}
 
 export function PlayersProvider({ children }: { children: React.ReactNode }) {
-  const [players, setPlayers] = useState<Player[]>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_PLAYERS);
-      return raw ? (JSON.parse(raw) as Player[]) : [];
-    } catch {
-      return [];
-    }
+  const {
+    data: playersData,
+    error: playersError,
+    isLoading: playersLoading,
+  } = useSWR<PlayersResponse>(`${API_BASE}/players`, fetcher, {
+    suspense: false,
   });
-
-  const [games, setGames] = useState<Game[]>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_GAMES);
-      return raw ? (JSON.parse(raw) as Game[]) : [];
-    } catch {
-      return [];
-    }
+  const {
+    data: gamesData,
+    error: gamesError,
+    isLoading: gamesLoading,
+  } = useSWR<GamesResponse>(`${API_BASE}/games`, fetcher, {
+    suspense: false,
   });
+  const { data: leaderboardData } = useSWR<LeaderboardResponse>(
+    `${API_BASE}/leaderboard`,
+    fetcher,
+    { refreshInterval: 30_000 } // align with backend TTL
+  );
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_PLAYERS, JSON.stringify(players));
-    } catch {
-      // ignore
-    }
-  }, [players]);
+  const players = playersData?.players ?? [];
+  const games = gamesData?.games ?? [];
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_GAMES, JSON.stringify(games));
-    } catch {
-      // ignore
-    }
-  }, [games]);
-
-  const addPlayer = (name: string) => {
-    const p: Player = { id: uid("p_"), name: name.trim() || "Player" };
-    setPlayers((s) => [...s, p]);
-    return p;
-  };
-
-  const removePlayer = (id: string) => {
-    setPlayers((s) => s.filter((p) => p.id !== id));
-    setGames((g) =>
-      g.filter((gg) => gg.playerAId !== id && gg.playerBId !== id)
+  const addPlayer = useCallback(async (name: string) => {
+    const trimmed = name.trim() || "Player";
+    const res = await fetch(`${API_BASE}/players`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed }),
+    });
+    if (!res.ok) throw new Error("Failed to add player");
+    const data = await res.json();
+    // Update SWR cache
+    mutate(
+      `${API_BASE}/players`,
+      (current?: PlayersResponse) => {
+        const list = current?.players ?? [];
+        return { players: [...list, data.player] };
+      },
+      false
     );
-  };
+    // Also revalidate leaderboard
+    mutate(`${API_BASE}/leaderboard`);
+    return data.player as Player;
+  }, []);
 
-  const addGame = (partial: Omit<Game, "id" | "date">) => {
-    const g: Game = {
-      ...partial,
-      id: uid("g_"),
-      date: new Date().toISOString(),
-    };
-    setGames((s) => [g, ...s]);
-    return g;
-  };
+  const removePlayer = useCallback(async (id: string) => {
+    const res = await fetch(`${API_BASE}/players/${id}`, { method: "DELETE" });
+    if (!res.ok && res.status !== 404)
+      throw new Error("Failed to remove player");
+    mutate(
+      `${API_BASE}/players`,
+      (current?: PlayersResponse) => {
+        const list = current?.players ?? [];
+        return { players: list.filter((p) => p.id !== id) };
+      },
+      false
+    );
+    mutate(
+      `${API_BASE}/games`,
+      (current?: GamesResponse) => {
+        const list = current?.games ?? [];
+        return {
+          games: list.filter((g) => g.playerAId !== id && g.playerBId !== id),
+        };
+      },
+      false
+    );
+    mutate(`${API_BASE}/leaderboard`);
+  }, []);
 
-  const getLeaderboard = useMemo(() => {
-    return () => {
-      const map = new Map<string, LeaderboardEntry>();
-      players.forEach((p) =>
-        map.set(p.id, {
-          player: p,
-          wins: 0,
-          losses: 0,
-          matches: 0,
-          pointsFor: 0,
-          pointsAgainst: 0,
-          pointDiff: 0,
-        })
-      );
+  const addGame = useCallback(async (partial: Omit<Game, "id" | "date">) => {
+    const res = await fetch(`${API_BASE}/games`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(partial),
+    });
+    if (!res.ok) throw new Error("Failed to add game");
+    const data = await res.json();
+    mutate(
+      `${API_BASE}/games`,
+      (current?: GamesResponse) => {
+        const list = current?.games ?? [];
+        return { games: [data.game, ...list] };
+      },
+      false
+    );
+    mutate(`${API_BASE}/leaderboard`);
+    return data.game as Game;
+  }, []);
 
-      for (const g of games) {
-        const a = map.get(g.playerAId);
-        const b = map.get(g.playerBId);
-        if (!a || !b) continue;
-        a.matches++;
-        b.matches++;
-        a.pointsFor += g.scoreA;
-        a.pointsAgainst += g.scoreB;
-        b.pointsFor += g.scoreB;
-        b.pointsAgainst += g.scoreA;
-        if (g.scoreA > g.scoreB) {
-          a.wins++;
-          b.losses++;
-        } else if (g.scoreB > g.scoreA) {
-          b.wins++;
-          a.losses++;
-        }
-      }
-      const arr = Array.from(map.values()).map((e) => ({
-        ...e,
-        pointDiff: e.pointsFor - e.pointsAgainst,
-      }));
-      arr.sort((x, y) => {
-        if (y.wins !== x.wins) return y.wins - x.wins;
-        if (y.pointDiff !== x.pointDiff) return y.pointDiff - x.pointDiff;
-        return y.pointsFor - x.pointsFor;
-      });
-      return arr;
-    };
-  }, [players, games]);
+  const getLeaderboard = () => leaderboardData?.leaderboard ?? [];
+
+  const loading = playersLoading || gamesLoading;
+  const error = playersError?.message || gamesError?.message || null;
 
   const value: State = {
     players,
@@ -157,6 +119,8 @@ export function PlayersProvider({ children }: { children: React.ReactNode }) {
     removePlayer,
     addGame,
     getLeaderboard,
+    loading,
+    error,
   };
 
   return (
@@ -164,8 +128,4 @@ export function PlayersProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function usePlayers() {
-  const ctx = useContext(PlayersContext);
-  if (!ctx) throw new Error("usePlayers must be used within PlayersProvider");
-  return ctx;
-}
+// Hook logic in separate file for fast-refresh integrity.
