@@ -29,7 +29,7 @@
     // 🟢 Compound task that starts everything in parallel on folder open
     {
       "label": "Start All",
-      "dependsOn": ["N8n", "Backend", "Frontend"],
+      "dependsOn": ["Backend", "Frontend"],
       "dependsOrder": "parallel",
       "runOptions": { "runOn": "folderOpen" },
       "problemMatcher": []
